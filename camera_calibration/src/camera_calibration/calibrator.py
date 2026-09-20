@@ -33,6 +33,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from io import BytesIO
+from pathlib import Path
+
 import cv2
 import cv_bridge
 import image_geometry
@@ -696,12 +698,12 @@ class Calibrator():
         ])
         return calmessage
 
-    def do_save(self):
-        filename = '/tmp/calibrationdata.tar.gz'
-        tf = tarfile.open(filename, 'w:gz')
-        self.do_tarfile_save(tf) # Must be overridden in subclasses
+    def do_save(self, path: Path):
+        filename = path / 'calibrationdata.tar.gz'
+        tf = tarfile.open(path, 'w:gz')
+        self.do_tarfile_save(tf)  # Must be overridden in subclasses
         tf.close()
-        print(("Wrote calibration data to", filename))
+        print("Wrote calibration data to", filename)
 
 def image_from_archive(archive, name):
     """

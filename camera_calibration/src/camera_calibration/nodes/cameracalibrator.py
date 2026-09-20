@@ -84,6 +84,9 @@ def main():
                      action="append", default=[],
                      help="ArUco marker dictionary; only valid with `-p charuco`; one of 'aruco_orig', '4x4_250', " +
                      "'5x5_250', '6x6_250', '7x7_250'")
+    group.add_option("--output-path",
+                     type="string", default="/tmp/",
+                     help="Directory where the calibration file is saved")
     parser.add_option_group(group)
     group = OptionGroup(parser, "ROS Communication Options")
     group.add_option("--approximate",
@@ -219,10 +222,20 @@ def main():
         checkerboard_flags = cv2.CALIB_CB_FAST_CHECK
 
     rclpy.init()
-    node = OpenCVCalibrationNode("cameracalibrator", boards, options.service_check, sync,
-                                 calib_flags, fisheye_calib_flags, pattern, options.camera_name,
-                                 checkerboard_flags=checkerboard_flags, max_chessboard_speed=options.max_chessboard_speed,
-                                 queue_size=options.queue_size)
+    node = OpenCVCalibrationNode(
+        "cameracalibrator",
+        boards,
+        options.service_check,
+        sync,
+        calib_flags,
+        fisheye_calib_flags,
+        pattern,
+        options.camera_name,
+        checkerboard_flags=checkerboard_flags,
+        max_chessboard_speed=options.max_chessboard_speed,
+        queue_size=options.queue_size,
+        output_path=options.output_path,
+    )
     node.spin()
     rclpy.shutdown()
 
