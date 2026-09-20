@@ -30,14 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import os
-from queue import Queue
-import threading
-import time
-
-from camera_calibration.calibrator import CAMERA_MODEL, Patterns
-from camera_calibration.mono_calibrator import MonoCalibrator
-from camera_calibration.stereo_calibrator import StereoCalibrator
+from pathlib import Path
 import cv2
 import message_filters
 import numpy
@@ -46,6 +39,27 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default, QoSProfile
 import sensor_msgs.msg
 import sensor_msgs.srv
+from typing import TYPE_CHECKING
+
+from camera_calibration.calibrator import (
+    MonoCalibrator,
+    Patterns,
+    StereoCalibrator,
+)
+
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
+from camera_calibration.calibrator import CAMERA_MODEL
+from rclpy.qos import qos_profile_system_default
+from rclpy.qos import QoSProfile
+
+if TYPE_CHECKING:
+    from camera_calibration.calibrator import (
+        Calibrator,
+    )
+
 
 
 class BufferQueue(Queue):
@@ -92,20 +106,9 @@ class ConsumerThread(threading.Thread):
 
 
 class CalibrationNode(Node):
-    def __init__(
-        self,
-        name,
-        boards,
-        service_check=True,
-        synchronizer=message_filters.TimeSynchronizer,
-        flags=0,
-        fisheye_flags=0,
-        pattern=Patterns.Chessboard,
-        camera_name='',
-        checkerboard_flags=0,
-        max_chessboard_speed=-1,
-        queue_size=1,
-    ):
+    def __init__(self, name, boards, service_check = True, synchronizer = message_filters.TimeSynchronizer, flags = 0,
+                 fisheye_flags = 0, pattern=Patterns.Chessboard, camera_name='', checkerboard_flags = 0,
+                 max_chessboard_speed = -1, queue_size = 1, output_path: str = "/tmp/"):
         super().__init__(name)
 
         self.set_camera_info_service = self.create_client(
@@ -117,6 +120,8 @@ class CalibrationNode(Node):
         self.set_right_camera_info_service = self.create_client(
             sensor_msgs.srv.SetCameraInfo, 'right_camera/set_camera_info'
         )
+
+        self.output_path = Path(output_path)
 
         if service_check:
             available = False
@@ -162,7 +167,7 @@ class CalibrationNode(Node):
         self.q_mono = BufferQueue(queue_size)
         self.q_stereo = BufferQueue(queue_size)
 
-        self.c = None
+        self.c: Calibrator = None
 
         self._last_display = None
 
@@ -363,7 +368,7 @@ class OpenCVCalibrationNode(CalibrationNode):
                     self.queue_display.put(self._last_display)
             if self.c.calibrated:
                 if 280 <= y < 380:
-                    self.c.do_save()
+                    self.c.do_save(self.output_path)
                 elif 380 <= y < 480:
                     # Only shut down if we set camera info correctly, #3993
                     if self.do_upload():

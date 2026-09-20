@@ -64,60 +64,35 @@ def optionsValidCharuco(options, parser):
 
 
 def main():
-    from optparse import OptionGroup, OptionParser
-
-    parser = OptionParser(
-        '%prog --size SIZE1 --square SQUARE1 [ --size SIZE2 --square SQUARE2 ]', description=None
-    )
-    parser.add_option(
-        '-c',
-        '--camera_name',
-        type='string',
-        default='narrow_stereo',
-        help='name of the camera to appear in the calibration file',
-    )
-    group = OptionGroup(
-        parser,
-        'Chessboard Options',
-        'You must specify one or more chessboards as pairs of --size and --square options.',
-    )
-    group.add_option(
-        '-p',
-        '--pattern',
-        type='string',
-        default='chessboard',
-        help="calibration pattern to detect - 'chessboard', 'circles', 'acircles', 'charuco'\n"
-        + "  if 'charuco' is used, a --charuco_marker_size and --aruco_dict argument must "
-        + 'be supplied\n'
-        + '  with each --size and --square argument',
-    )
-    group.add_option(
-        '-s',
-        '--size',
-        action='append',
-        default=[],
-        help='chessboard size as NxM, counting interior corners '
-             '(e.g. a standard chessboard is 7x7)',
-    )
-    group.add_option(
-        '-q', '--square', action='append', default=[], help='chessboard square size in meters'
-    )
-    group.add_option(
-        '-m',
-        '--charuco_marker_size',
-        action='append',
-        default=[],
-        help='ArUco marker size (meters); only valid with `-p charuco`',
-    )
-    group.add_option(
-        '-d',
-        '--aruco_dict',
-        action='append',
-        default=[],
-        help='ArUco marker dictionary; only valid with `-p charuco`; one of '
-        "'aruco_orig', '4x4_250', "
-        + "'5x5_250', '6x6_250', '7x7_250'",
-    )
+    from optparse import OptionParser, OptionGroup
+    parser = OptionParser("%prog --size SIZE1 --square SQUARE1 [ --size SIZE2 --square SQUARE2 ]",
+                          description=None)
+    parser.add_option("-c", "--camera_name",
+                     type="string", default='narrow_stereo',
+                     help="name of the camera to appear in the calibration file")
+    group = OptionGroup(parser, "Chessboard Options",
+                        "You must specify one or more chessboards as pairs of --size and --square options.")
+    group.add_option("-p", "--pattern",
+                     type="string", default="chessboard",
+                     help="calibration pattern to detect - 'chessboard', 'circles', 'acircles', 'charuco'\n" +
+                     "  if 'charuco' is used, a --charuco_marker_size and --aruco_dict argument must be supplied\n" +
+                     "  with each --size and --square argument")
+    group.add_option("-s", "--size",
+                     action="append", default=[],
+                     help="chessboard size as NxM, counting interior corners (e.g. a standard chessboard is 7x7)")
+    group.add_option("-q", "--square",
+                     action="append", default=[],
+                     help="chessboard square size in meters")
+    group.add_option("-m", "--charuco_marker_size",
+                     action="append", default=[],
+                     help="ArUco marker size (meters); only valid with `-p charuco`")
+    group.add_option("-d", "--aruco_dict",
+                     action="append", default=[],
+                     help="ArUco marker dictionary; only valid with `-p charuco`; one of 'aruco_orig', '4x4_250', " +
+                     "'5x5_250', '6x6_250', '7x7_250'")
+    group.add_option("--output-path",
+                     type="string", default="/tmp/",
+                     help="Directory where the calibration file is saved")
     parser.add_option_group(group)
     group = OptionGroup(parser, 'ROS Communication Options')
     group.add_option(
@@ -308,7 +283,7 @@ def main():
 
     rclpy.init()
     node = OpenCVCalibrationNode(
-        'cameracalibrator',
+        "cameracalibrator",
         boards,
         options.service_check,
         sync,
@@ -319,6 +294,7 @@ def main():
         checkerboard_flags=checkerboard_flags,
         max_chessboard_speed=options.max_chessboard_speed,
         queue_size=options.queue_size,
+        output_path=options.output_path,
     )
     node.spin()
     rclpy.shutdown()

@@ -32,9 +32,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from enum import Enum
-import math
-import tarfile
+from io import BytesIO
+from pathlib import Path
 
 import cv2
 import cv_bridge
@@ -777,13 +776,12 @@ class Calibrator:
         )
         return calmessage
 
-    def do_save(self):
-        filename = '/tmp/calibrationdata.tar.gz'
-        tf = tarfile.open(filename, 'w:gz')
+    def do_save(self, path: Path):
+        filename = path / 'calibrationdata.tar.gz'
+        tf = tarfile.open(path, 'w:gz')
         self.do_tarfile_save(tf)  # Must be overridden in subclasses
         tf.close()
-        print(('Wrote calibration data to', filename))
-
+        print("Wrote calibration data to", filename)
 
 def image_from_archive(archive, name):
     """
