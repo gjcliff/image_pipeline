@@ -701,7 +701,7 @@ class Calibrator():
 
     def do_save(self, path: Path):
         filename = path / 'calibrationdata.tar.gz'
-        tf = tarfile.open(path, 'w:gz')
+        tf = tarfile.open(filename, 'w:gz')
         self.do_tarfile_save(tf)  # Must be overridden in subclasses
         tf.close()
         print("Wrote calibration data to", filename)
